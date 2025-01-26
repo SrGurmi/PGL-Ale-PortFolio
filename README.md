@@ -1,50 +1,230 @@
-# Welcome to your Expo app 👋
+# PGL-Ale-PortFolio
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Descripción
 
-## Get started
+Esta aplicación es un portfolio personal que muestra diferentes pantallas implementadas con React Native y Expo. A continuación, se describen las pantallas principales de la aplicación y cómo se han implementado.
 
-1. Install dependencies
+## Pantallas
 
-   ```bash
-   npm install
-   ```
+### 1. Pantalla de Bienvenida
 
-2. Start the app
+**Ruta:** `app/(drawer)/welcome/index.tsx`
 
-   ```bash
-    npx expo start
-   ```
+**Descripción:** Esta pantalla da la bienvenida al usuario cuando inicia la aplicación, si previamente se ha registrado y logeado correctamente.
 
-In the output, you'll find options to open the app in a
+**Implementación:**
+```typescript
+import React from "react";
+import { View, Text } from "react-native";
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+const WelcomePage = () => {
+  return (
+    <View>
+      <Text>Welcome</Text>
+    </View>
+  );
+};
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+export default WelcomePage;
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Pantalla de Tienda
 
-## Learn more
+**Ruta:** `app/(drawer)/todo/index.tsx`
 
-To learn more about developing your project with Expo, look at the following resources:
+**Descripción:** Esta pantalla muestra una lista o carrito de la compra, .
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+**Implementación:**
+```typescript
+import React from "react";
+import { View, Text } from "react-native";
 
-## Join the community
+const StoreScreen = () => {
+  return (
+    <View>
+      <Text>Store</Text>
+    </View>
+  );
+};
 
-Join our community of developers creating universal apps.
+export default StoreScreen;
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### 3. Pantalla de Perfil
+
+**Ruta:** `app/(drawer)/profile/_layout.tsx`
+
+**Descripción:** Esta pantalla muestra la información del perfil del usuario y contiene pestañas que muestran mis hobbies y un código QR que nos lleva a mi perfil de Github.
+
+**Implementación:**
+```typescript
+import { Tabs } from "expo-router";
+import React from "react";
+import { StyleSheet } from "react-native";
+import Header from "../../../components/Header";
+import Entypo from "@expo/vector-icons/Entypo";
+
+const TabsLayout = () => {
+  return (
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: "blue",
+        tabBarActiveBackgroundColor: "grey",
+        header: () => <Header />,
+      }}
+    >
+      <Tabs.Screen
+        name="hobbies"
+        options={{
+          title: "Hobbies",
+          href: "/profile/hobbies",
+          tabBarIcon: () => <Entypo name="video" />,
+        }}
+      />
+      <Tabs.Screen
+        name="git"
+        options={{
+          title: "Repositorio",
+          href: "/profile/git",
+          tabBarIcon: () => <Entypo name="github" />,
+        }}
+      />
+    </Tabs>
+  );
+};
+
+export default TabsLayout;
+
+const styles = StyleSheet.create({});
+```
+
+### 4. Pantalla de datos sobre Perros
+
+**Ruta:** `app/(drawer)/dogs/index.tsx`
+
+**Descripción:** Esta pantalla muestra información y datos curiosos sobre perros.
+
+**Implementación:**
+```typescript
+import React from "react";
+import { View, Text } from "react-native";
+
+const DogsScreen = () => {
+  return (
+    <View>
+      <Text>Dogs Facts</Text>
+    </View>
+  );
+};
+
+export default DogsScreen;
+```
+
+### 5. Pantalla de Inicio de Sesión
+
+**Ruta:** `app/user/login.tsx`
+
+**Descripción:** Esta pantalla permite al usuario iniciar sesión en la aplicación.
+
+**Implementación:**
+```typescript
+import React from "react";
+import { View, Text } from "react-native";
+
+const LoginScreen = () => {
+  return (
+    <View>
+      <Text>Login</Text>
+    </View>
+  );
+};
+
+export default LoginScreen;
+```
+
+## Navegación
+
+La navegación entre las pantallas se maneja utilizando `Drawer.Navigator` y `Tabs` de `expo-router`.
+
+**Implementación del Layout Principal:**
+```typescript
+import React, { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { asyncStorageService } from "../../service/async-storage-service";
+import HomeScreen from "./welcome/index";
+import StoreScreen from "./todo/index";
+import TabsLayout from "./profile/_layout";
+import DogsScreen from "./dogs/index";
+import LoginScreen from "../user/login";
+
+const Drawer = createDrawerNavigator();
+
+const AppLayout = () => {
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        const checkLogin = async () => {
+            const userToken = await asyncStorageService.get(
+                asyncStorageService.KEYS.userToken
+            );
+            setIsLoggedIn(userToken != null);
+        };
+
+        checkLogin();
+    }, []);
+
+    if (isLoggedIn === null) {
+        return null;
+    }
+
+    return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            {isLoggedIn ? (
+                <Drawer.Navigator>
+                    <Drawer.Screen
+                        name="home"
+                        component={HomeScreen}
+                        options={{
+                            drawerLabel: "Home",
+                            title: "Welcome",
+                        }}
+                    />
+                    <Drawer.Screen
+                        name="todo/index"
+                        component={StoreScreen}
+                        options={{
+                            drawerLabel: "Store",
+                            title: "My Store",
+                        }}
+                    />
+                    <Drawer.Screen
+                        name="profile"
+                        component={TabsLayout}
+                        options={{
+                            drawerLabel: "Profile",
+                            title: "About Me",
+                        }}
+                    />
+                    <Drawer.Screen
+                        name="dogs/index"
+                        component={DogsScreen}
+                        options={{
+                            drawerLabel: "Dogs",
+                            title: "Dogs Facts",
+                        }}
+                    />
+                </Drawer.Navigator>
+            ) : (
+                <LoginScreen />
+            )}
+        </GestureHandlerRootView>
+    );
+};
+
+export default AppLayout;
+
+const styles = StyleSheet.create({});
+```
+
