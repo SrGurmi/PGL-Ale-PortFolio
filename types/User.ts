@@ -1,5 +1,3 @@
-import { password } from "@inquirer/prompts";
-
 export type User = {
   fullname: string;
   email: string;

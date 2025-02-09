@@ -10,6 +10,7 @@ import { router } from "expo-router";
 import { getDefaultUser, User } from "../../../types/User";
 import ToastManager, { Toast } from "toastify-react-native";
 import LoginService from "../../../service/loginService";
+import * as SecureStore from 'expo-secure-store'; // ✅ Import SecureStore
 
 export const loginPage = () => {
   const [currentUser, setCurrentUser] = useState<User>(getDefaultUser());
@@ -31,13 +32,30 @@ export const loginPage = () => {
     } else if (currentUser.pswd.length < 8) {
       Toast.error("The password format is not correct");
     } else {
-      const token = await LoginService.loginUser(currentUser);
-      console.log(token);
-      if (token != null) {
-        router.navigate("/(drawer)/welcome");
-        setCurrentUser(getDefaultUser());
-      } else {
-        Toast.error("This user doesn't exist");
+      try {
+        const loginResponse = await LoginService.loginUser({
+          email: currentUser.email,
+          pswd: currentUser.pswd,
+        });
+        console.log("LoginService response in loginPage:", loginResponse);
+
+        // ✅ Modifica la condición para verificar response.object y response.object.token
+        if (loginResponse && loginResponse.statusCode === 200 && loginResponse.object && loginResponse.object.token) {
+          // ✅ Extrae el token de response.object.token
+          const token = loginResponse.object.token;
+          console.log("Login successful, token received:", token);
+
+          await SecureStore.setItemAsync('authToken', token);
+
+          router.navigate("/(drawer)/welcome");
+          setCurrentUser(getDefaultUser());
+        } else {
+          console.log("Login failed or token not received. Response:", loginResponse); // ✅ Loguea la respuesta completa para debugging
+          Toast.error("Login failed. Please check your credentials.");
+        }
+      } catch (error) {
+        console.error("Error during login:", error);
+        Toast.error("Login failed. An unexpected error occurred.");
       }
     }
   };

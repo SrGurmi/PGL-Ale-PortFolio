@@ -37,4 +37,4 @@ export const asyncStorageService = {
   save,
   get,
   remove,
-};
+}
